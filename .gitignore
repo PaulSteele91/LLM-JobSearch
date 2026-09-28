@@ -1,0 +1,5 @@
+workspace/
+seen_jobs.json
+.env
+*.pyc
+__pycache__/
