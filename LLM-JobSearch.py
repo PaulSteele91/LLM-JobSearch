@@ -45,17 +45,37 @@ SEARCH_QUERIES = [
 ]
 
 def is_valid_url(url: str) -> bool:
-    """Checks if a URL is reachable and does not return a 404 or error."""
+    """Checks if a URL is reachable, returns 200, and does not contain soft-404/expired job messages."""
     try:
         headers = {"User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64)"}
-        # Use a timeout so a slow server doesn't hang your pipeline
-        response = requests.head(url, headers=headers, allow_redirects=True, timeout=5)
+        # Use GET instead of HEAD so we can inspect the HTML body content
+        response = requests.get(url, headers=headers, timeout=10, allow_redirects=True)
         
-        # Some servers don't support HEAD requests, fallback to GET if needed
-        if response.status_code == 405:
-            response = requests.get(url, headers=headers, timeout=5, stream=True)
+        # If the status code isn't 200, it's definitely broken
+        if response.status_code != 200:
+            return False
             
-        return response.status_code == 200
+        # Convert page content to lowercase for keyword checking
+        body_text = response.text.lower()
+        
+        # Common phrases used by Workday and other ATS platforms for dead/expired jobs
+        soft_404_phrases = [
+            "page you are looking for doesn't exist",
+            "page you are looking for does not exist",
+            "no longer available",
+            "job expired",
+            "position has been filled",
+            "this job posting is no longer active",
+            "job is closed",
+            "we can't find that page"
+        ]
+        
+        # If any soft-404 phrase appears in the body, treat it as a dead link
+        if any(phrase in body_text for phrase in soft_404_phrases):
+            print(f"-> Discarded (Soft-404 / Expired Job Detected): {url}")
+            return False
+            
+        return True
     except Exception:
         return False
 
