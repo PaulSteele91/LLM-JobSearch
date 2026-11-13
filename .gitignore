@@ -1,5 +1,30 @@
-workspace/
-seen_jobs.json
+# Secrets & Environment Variables
 .env
-*.pyc
+*.env
+
+# Local Pipeline State & Outputs
+seen_jobs.json
+matched_jobs.md
+
+# Resumes & Personal PII
+*.pdf
+*.docx
+*.doc
+!sample_resume.pdf
+
+# Python Cache & Artifacts
 __pycache__/
+*.py[cod]
+*$py.class
+*.pyc
+
+# Virtual Environments
+.venv/
+venv/
+env/
+ENV/
+workspace/
+
+# OS Specific
+.DS_Store
+Thumbs.db
